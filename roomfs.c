@@ -182,5 +182,6 @@ err_out1:
 	free(opts.mountpoint);
 	fuse_opt_free_args(&args);
 
+    engine_destroy();
 	return ret ? 1 : 0;
 }

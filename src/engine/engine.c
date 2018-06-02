@@ -2,6 +2,35 @@
 
 struct game_engine_s *game_engine;
 
+
+void read_room_setting(FILE *f, struct room *cur_room) {
+
+    int adj_rooms = 0;
+    fscanf(f, "%d\n", &adj_rooms);
+    printf("orig: %d\n", adj_rooms);
+
+    cur_room->adjacent_rooms = (struct room **) malloc(sizeof(struct room *) * adj_rooms);
+    char target_room_name[100];
+    struct room *target_room = NULL;
+
+    for (int i = 0; i < adj_rooms; i++) {
+        fscanf(f, "%s\n", target_room_name);
+
+        for (int j = 0; j < game_engine->total_rooms; j++) {
+            if (strcmp(game_engine->room_names[j], target_room_name) == 0) {
+                target_room = game_engine->rooms[j];
+                break;
+            }
+        }
+        cur_room->adjacent_rooms[i] = target_room;
+        printf("orig: 0x%08x, 0x%08x\n", cur_room, target_room);
+        printf("orig: %s\n", target_room_name);
+    }
+
+    cur_room->total_adjacent_rooms = adj_rooms;
+    printf("total: %d\n", cur_room->total_adjacent_rooms);
+}
+
 void engine_init(const char *path) {
     game_engine = malloc(sizeof(struct game_engine_s));
 
@@ -31,11 +60,9 @@ void engine_init(const char *path) {
     game_engine->total_rooms = room_nums;
     game_engine->entry_room = rooms[0];
 
-    int adj_rooms = 0;
 
-    while (fscanf(f, "%s\n", room_name) == 1) {
-        fscanf(f, "%d\n", &adj_rooms);
-        printf("orig: %s, %d\n", room_name, adj_rooms);
+    char obj_name[100];
+    while (fscanf(f, "%s\n", obj_name) == 1) {
         struct room *cur_room = NULL;
         for (int i = 0; i < room_nums; i++) {
             if (strcmp(room_names[i], room_name) == 0) {
@@ -44,27 +71,7 @@ void engine_init(const char *path) {
             }
         }
 
-        cur_room->adjacent_rooms = (struct room **) malloc(sizeof(struct room *) * adj_rooms);
-        char target_room_name[100];
-        struct room *target_room = NULL;
-
-
-        for (int i = 0; i < adj_rooms; i++) {
-            fscanf(f, "%s\n", target_room_name);
-
-            for (int j = 0; j < room_nums; j++) {
-                if (strcmp(room_names[j], target_room_name) == 0) {
-                    target_room = rooms[j];
-                    break;
-                }
-            }
-            cur_room->adjacent_rooms[i] = target_room;
-            printf("orig: 0x%08x, 0x%08x\n", cur_room, target_room);
-            printf("orig: %s\n", target_room_name);
-        }
-
-        cur_room->total_adjacent_rooms = adj_rooms;
-        printf("total: %d\n", cur_room->total_adjacent_rooms);
+        read_room_setting(f, cur_room);
     }
 }
 

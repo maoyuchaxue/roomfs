@@ -3,6 +3,9 @@
 #define _ROOMFS_ENGINE
 
 #include "room.h"
+#include "item.h"
+#include "event.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,5 +18,7 @@ struct game_engine_s {
 };
 
 void engine_init(const char *path);
+
+void engine_destroy();
 
 #endif
