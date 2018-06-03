@@ -15,8 +15,25 @@ struct room *ino_to_room(fuse_ino_t ino) {
     return NULL;
 }
 
+struct room *ino_to_description(fuse_ino_t ino) {
+
+    for (int i = 0; i < game_engine->total_rooms; i++) {
+        if ((fuse_ino_t)game_engine->rooms[i]->description == ino) {
+            return game_engine->rooms[i];
+        }
+    }
+
+    return NULL;
+}
+
+
+
 int is_dir(fuse_ino_t ino) {
     return (ino_to_room(ino) != NULL);
+}
+
+int is_dir_description(fuse_ino_t ino) {
+    return (ino_to_description(ino) != NULL);
 }
 
 
@@ -41,12 +58,26 @@ struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino) {
     memset(b, 0, sizeof(struct dirbuf));
 
     dirbuf_add(req, b, ".", (fuse_ino_t)cur_room);
+    dirbuf_add(req, b, "look", (fuse_ino_t)(cur_room->description));
     for (int i = 0; i < cur_room->total_adjacent_rooms; i++) {
         printf("0x%08x,\n", cur_room->adjacent_rooms[i]);
         dirbuf_add(req, b, cur_room->adjacent_rooms[i]->name, (fuse_ino_t)(cur_room->adjacent_rooms[i]));
     }
 
+    for (int i = 0; i < cur_room->total_items; i++) {
+        printf("0x%08x,\n", cur_room->items[i]);
+        dirbuf_add(req, b, cur_room->items[i]->name, (fuse_ino_t)(cur_room->items[i]));
+    }
+
     return b;
+}
+
+
+void dir_description_getattr(fuse_ino_t ino, struct stat *stbuf) {
+    struct room *cur_room = ino_to_description(ino);
+    stbuf->st_mode = S_IFREG | 0777;
+    stbuf->st_nlink = 1;
+    stbuf->st_ino = (fuse_ino_t)cur_room->description;
 }
 
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf) {
@@ -72,6 +103,16 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
         return;
     }
 
+    const char *dir_description = "look";
+    if (strcmp(name, dir_description) == 0) {
+        e->ino = (fuse_ino_t)parent_room->description;
+        e->attr_timeout = 1.0;
+        e->entry_timeout = 1.0;
+        dir_description_getattr(e->ino, &(e->attr));
+        printf("lookup_dir found(look): 0x%08x\n", e->ino);
+        return;
+    }
+
     for (int i = 0; i < parent_room->total_adjacent_rooms; i++) {
         struct room *cur_room = parent_room->adjacent_rooms[i];
         if (strcmp(name, cur_room->name) == 0) {
@@ -84,4 +125,15 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
         }
     }
 
+    for (int i = 0; i < parent_room->total_items; i++) {
+        struct item *cur_item = parent_room->items[i];
+        if (strcmp(name, cur_item->name) == 0) {
+         	e->ino = (fuse_ino_t)cur_item;
+            e->attr_timeout = 1.0;
+            e->entry_timeout = 1.0;
+            file_getattr(e->ino, &(e->attr));
+            printf("lookup_dir found: 0x%08x\n", e->ino);
+            return;
+        }
+    }
 }

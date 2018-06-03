@@ -1,6 +1,6 @@
 CFLAGS = -Wall `pkg-config fuse3 --cflags --libs`
 
-SOURCES = roomfs.c ./src/engine/engine.c ./src/engine/room.c ./src/fs/dir.c
+SOURCES = roomfs.c ./src/engine/engine.c ./src/engine/event.c ./src/engine/room.c ./src/fs/dir.c ./src/fs/file.c
 
 build: $(SOURCES)
 	gcc $(SOURCES) $(CFLAGS) -o roomfs

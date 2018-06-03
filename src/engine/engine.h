@@ -15,6 +15,9 @@ struct game_engine_s {
     struct room **rooms;
     char **room_names;
     int total_rooms;
+    struct item **items;
+    char **item_names;
+    int total_items;
 };
 
 void engine_init(const char *path);
