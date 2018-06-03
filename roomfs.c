@@ -74,14 +74,25 @@ static void roomfs_getattr(fuse_req_t req, fuse_ino_t ino,
     (void) fi;
 	printf("roomfs getattr: ino - 0x%08x\n", ino);
 
-    if (is_dir(ino)) {
-    	struct stat stbuf;
-    	memset(&stbuf, 0, sizeof(stbuf));
-        dir_getattr(ino, &stbuf);
+	struct stat stbuf;
+	memset(&stbuf, 0, sizeof(stbuf));
 
+    if (is_dir(ino)) {
+        dir_getattr(ino, &stbuf);
         fuse_reply_attr(req, &stbuf, 30);
 		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
-    } else {
+
+    } else if (is_dir_description(ino)) {
+        dir_description_getattr(ino, &stbuf);
+        fuse_reply_attr(req, &stbuf, 30);
+		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
+
+	} else if (is_file(ino)) {
+		file_getattr(ino, &stbuf);
+        fuse_reply_attr(req, &stbuf, 30);
+		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
+
+	} else {
 		printf("roomfs getattr: ino - 0x%08x, not found!\n", ino);
         fuse_reply_err(req, ENOENT);
     }
@@ -89,7 +100,6 @@ static void roomfs_getattr(fuse_req_t req, fuse_ino_t ino,
 }
 
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
 
 static void roomfs_readdir(fuse_req_t req, fuse_ino_t ino, size_t size,
                         off_t off, struct fuse_file_info *fi) {
@@ -112,16 +122,44 @@ static void roomfs_readdir(fuse_req_t req, fuse_ino_t ino, size_t size,
 static void roomfs_opendir(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info *fi) {
 	(void) fi;
 	printf("roomfs opendir: 0x%08x\n", ino);
-	fuse_reply_open(req, fi);
+	if (!is_dir(ino)) {
+        fuse_reply_err(req, ENOTDIR);
+	} else {
+		fuse_reply_open(req, fi);
+	}
 }
+
+
+static void roomfs_open(fuse_req_t req, fuse_ino_t ino,
+		struct fuse_file_info *fi) {
+	if (is_dir_description(ino)) {
+		fuse_reply_open(req, fi);
+	} else if (is_file(ino)) {
+		fuse_reply_open(req, fi);
+	} else {
+		fuse_reply_err(req, ENOENT);
+	}
+}
+
+static void roomfs_read(fuse_req_t req, fuse_ino_t ino, size_t size,
+		off_t off, struct fuse_file_info *fi) {
+	if (is_dir_description(ino)) {
+		dir_description_read(req, ino, size, off, fi);
+	} else if (is_file(ino)) {
+		file_read(req, ino, size, off, fi);
+	} else {
+		fuse_reply_err(req, ENOENT);
+	}
+}
+
 
 static struct fuse_lowlevel_ops roomfs_ll_oper = {
 	.lookup		= roomfs_lookup,
 	.getattr	= roomfs_getattr,
 	.readdir	= roomfs_readdir,
 	.opendir    = roomfs_opendir,
-// 	.open		= hello_ll_open,
-// 	.read		= hello_ll_read,
+	.open		= roomfs_open,
+	.read		= roomfs_read,
 };
 
 int main(int argc, char *argv[])

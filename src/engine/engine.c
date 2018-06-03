@@ -2,6 +2,23 @@
 
 struct game_engine_s *game_engine;
 
+char *wrap_sh_echo(char *buf) {
+    int buf_len = strlen(buf);
+    char *wrapped = malloc((buf_len + 10));
+
+    char *prefix = "echo \"";
+    int prefix_len = strlen(prefix);
+    char *suffix = "\"";
+    int suffix_len = strlen(suffix);
+
+    strcpy(wrapped, prefix);
+    strcpy(wrapped + prefix_len, buf);
+    strcpy(wrapped + prefix_len + buf_len, suffix);
+
+    free(buf);
+    return wrapped;
+}
+
 char *read_multiline_description(FILE *f) {
 
     char *buf = malloc(1000 * sizeof(char));
@@ -13,6 +30,8 @@ char *read_multiline_description(FILE *f) {
             if (i > 0 && buf[i-1] == '\\') {
                 i--;
             } else {
+                buf[i] = c;
+                i++;
                 buf[i] = '\0';
                 break;
             }
@@ -21,7 +40,7 @@ char *read_multiline_description(FILE *f) {
         i++;
     }
 
-    return buf;
+    return wrap_sh_echo(buf);
 }
 
 void read_room_setting(FILE *f, struct room *cur_room) {

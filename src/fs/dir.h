@@ -21,4 +21,6 @@ struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino);
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf);
 void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e);
 
+void dir_description_read(fuse_req_t req, fuse_ino_t ino, size_t size,
+	off_t off, struct fuse_file_info *fi);
 #endif

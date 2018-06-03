@@ -78,6 +78,7 @@ void dir_description_getattr(fuse_ino_t ino, struct stat *stbuf) {
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
     stbuf->st_ino = (fuse_ino_t)cur_room->description;
+	stbuf->st_size = strlen(cur_room->description);
 }
 
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf) {
@@ -136,4 +137,12 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
             return;
         }
     }
+}
+
+
+void dir_description_read(fuse_req_t req, fuse_ino_t ino, size_t size,
+	off_t off, struct fuse_file_info *fi) {
+    
+    struct room *cur_room = ino_to_description(ino);
+	reply_buf_limited(req, cur_room->description, strlen(cur_room->description), off, size);
 }
