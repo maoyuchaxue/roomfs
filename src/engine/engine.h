@@ -5,6 +5,7 @@
 #include "room.h"
 #include "item.h"
 #include "event.h"
+#include "const.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,8 @@ struct game_engine_s {
 };
 
 void engine_init(const char *path);
-
 void engine_destroy();
+struct room *name_to_room(const char *room_name);
+struct item *name_to_item(const char *item_name);
 
 #endif

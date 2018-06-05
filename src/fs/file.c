@@ -43,3 +43,8 @@ void file_read(fuse_req_t req, fuse_ino_t ino, size_t size,
     struct item *cur_item = ino_to_item(ino);
 	reply_buf_limited(req, cur_item->description, strlen(cur_item->description), off, size);
 }
+
+void file_close(fuse_ino_t ino) {
+    struct item *cur_item = ino_to_item(ino);
+    item_trigger_events(cur_item);
+}

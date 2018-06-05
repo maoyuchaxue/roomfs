@@ -17,6 +17,8 @@ struct room {
 
 // void engine_init(const char *path);
 
+void room_init(struct room *cur_room);
+
 int room_has_adj_room(struct room *parent, struct room *target_room);
 void room_add_adj_room(struct room *parent, struct room *target_room);
 void room_remove_adj_room(struct room *parent, struct room *target_room);

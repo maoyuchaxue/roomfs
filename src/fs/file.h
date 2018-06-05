@@ -18,6 +18,8 @@ void file_getattr(fuse_ino_t ino, struct stat *stbuf);
 void file_read(fuse_req_t req, fuse_ino_t ino, size_t size,
 		off_t off, struct fuse_file_info *fi);
 
+void file_close(fuse_ino_t ino);
+
 int reply_buf_limited(fuse_req_t req, const char *buf, size_t bufsize,
         off_t off, size_t maxsize);
 

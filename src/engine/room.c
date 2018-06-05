@@ -1,6 +1,18 @@
 #include "room.h"
 
+void room_init(struct room *cur_room) {
+    cur_room->total_adjacent_rooms = 0;
+    cur_room->adjacent_rooms = malloc(0);
+    cur_room->total_items = 0;
+    cur_room->items = malloc(0);
+    cur_room->description = "";
+}
+
 int room_has_adj_room(struct room *parent, struct room *target_room) {
+    if (parent == NULL) {
+        return 0;
+    }
+
     for (int i = 0; i < parent->total_adjacent_rooms; i++) {
         if (parent->adjacent_rooms[i] == target_room) {
             return 1;
@@ -10,6 +22,10 @@ int room_has_adj_room(struct room *parent, struct room *target_room) {
 }
 
 void room_add_adj_room(struct room *parent, struct room *target_room) {
+    if (parent == NULL) {
+        return ;
+    }
+
     if (room_has_adj_room(parent, target_room)) {
         return ;
     }
@@ -20,6 +36,10 @@ void room_add_adj_room(struct room *parent, struct room *target_room) {
 }
 
 void room_remove_adj_room(struct room *parent, struct room *target_room) {
+    if (parent == NULL) {
+        return ;
+    }
+
     if (!room_has_adj_room(parent, target_room)) {
         return ;
     }
@@ -38,6 +58,10 @@ void room_remove_adj_room(struct room *parent, struct room *target_room) {
 
 
 int room_has_item(struct room *parent, struct item *target_item) {
+    if (parent == NULL) {
+        return 0;
+    }
+
     for (int i = 0; i < parent->total_items; i++) {
         if (parent->items[i] == target_item) {
             return 1;
@@ -47,6 +71,10 @@ int room_has_item(struct room *parent, struct item *target_item) {
 }
 
 void room_add_item(struct room *parent, struct item *target_item) {
+    if (parent == NULL) {
+        return ;
+    }
+
     if (room_has_item(parent, target_item)) {
         return ;
     }
@@ -58,6 +86,10 @@ void room_add_item(struct room *parent, struct item *target_item) {
 }
 
 void room_remove_item(struct room *parent, struct item *target_item) {
+    if (parent == NULL) {
+        return ;
+    }
+
     if (!room_has_item(parent, target_item)) {
         return ;
     }

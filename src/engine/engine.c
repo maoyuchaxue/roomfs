@@ -21,7 +21,7 @@ char *wrap_sh_echo(char *buf) {
 
 char *read_multiline_description(FILE *f) {
 
-    char *buf = malloc(1000 * sizeof(char));
+    char *buf = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
     char c;
     int i = 0;
     while (1) {
@@ -52,13 +52,9 @@ void read_room_setting(FILE *f, struct room *cur_room) {
     fscanf(f, "%d\n", &related_objs);
     printf("orig: %d\n", related_objs);
 
-    cur_room->adjacent_rooms = (struct room **) malloc(sizeof(struct room *) * related_objs);
-    char target_obj_name[100];
+    char target_obj_name[MAX_OBJ_NAME_LEN];
     struct room *target_room = NULL;
     struct item *target_item = NULL;
-
-    cur_room->total_adjacent_rooms = 0;
-    cur_room->total_items = 0;
 
     for (int i = 0; i < related_objs; i++) {
         fscanf(f, "%s\n", target_obj_name);
@@ -95,9 +91,37 @@ void read_room_setting(FILE *f, struct room *cur_room) {
 }
 
 void read_item_setting(FILE *f, struct item *cur_item) {
-
     cur_item->description = read_multiline_description(f);
     printf("itm: %s\n", cur_item->description);
+
+    while (1) {
+        char target1[MAX_OBJ_NAME_LEN];
+        fscanf(f, "%s", target1);
+        printf("%s\n", target1);
+        if (strcmp(target1, "end") == 0) {
+            break;
+        }
+        printf("target1:%s\n", target1);
+        char op_char;
+        fscanf(f, " %c", &op_char);
+        printf("opchar:%c\n", op_char);
+
+        if (op_char == 'x') {
+            struct event* cur_event = construct_event(cur_item, target1, &op_char, "");
+            item_add_event(cur_item, cur_event);
+        } else {
+            char target2_arr[MAX_OBJ_NAME_LEN];
+            char *target2 = &(target2_arr[0]);
+            fscanf(f, " %s\n", target2);
+            if (strcmp(target2, "description") == 0) {
+                target2 = read_multiline_description(f);
+            }
+            printf("target2:%s\n", target2);
+            struct event* cur_event = construct_event(cur_item, target1, &op_char, target2);
+            item_add_event(cur_item, cur_event);
+        }
+
+    }
 }
 
 void engine_init(const char *path) {
@@ -110,7 +134,7 @@ void engine_init(const char *path) {
     char **room_names = (char **) malloc(sizeof(char *) * room_nums);
     struct room **rooms = (struct room **) malloc(sizeof(struct room *) * room_nums);
 
-    char room_name[100];
+    char room_name[MAX_OBJ_NAME_LEN];
     for (int i = 0; i < room_nums; i++) {
         fscanf(f, "%s\n", room_name);
 
@@ -120,8 +144,8 @@ void engine_init(const char *path) {
         char *room_name_cpy = malloc(sizeof(char ) * (strlen(room_name) + 1));
         strcpy(room_name_cpy, room_name);
 
+        room_init(rooms[i]);
         rooms[i]->name = room_name_cpy;
-        rooms[i]->description = "";
         room_names[i] = room_name_cpy;
     }
 
@@ -136,7 +160,7 @@ void engine_init(const char *path) {
     char **item_names = (char **) malloc(sizeof(char *) * item_nums);
     struct item **items = (struct item **) malloc(sizeof(struct item *) * item_nums);
 
-    char item_name[100];
+    char item_name[MAX_OBJ_NAME_LEN];
     for (int i = 0; i < item_nums; i++) {
         fscanf(f, "%s\n", item_name);
 
@@ -146,6 +170,7 @@ void engine_init(const char *path) {
         char *item_name_cpy = malloc(sizeof(char ) * (strlen(item_name) + 1));
         strcpy(item_name_cpy, item_name);
 
+        item_init(items[i]);
         items[i]->name = item_name_cpy;
         item_names[i] = item_name_cpy;
     }
@@ -155,7 +180,7 @@ void engine_init(const char *path) {
     game_engine->total_items = item_nums;
 
 
-    char obj_name[100];
+    char obj_name[MAX_OBJ_NAME_LEN];
     while (fscanf(f, "%s\n", obj_name) == 1) {
         printf("obj name: %s\n", obj_name);
         struct room *cur_room = NULL;
@@ -181,6 +206,26 @@ void engine_init(const char *path) {
         }
 
     }
+}
+
+
+struct room *name_to_room(const char *room_name) {
+    for (int i = 0; i < game_engine->total_rooms; i++) {
+        if (strcmp(room_name, game_engine->room_names[i]) == 0) {
+            return game_engine->rooms[i];
+        } 
+    }
+    return NULL;
+}
+
+
+struct item *name_to_item(const char *item_name) {
+    for (int i = 0; i < game_engine->total_items; i++) {
+        if (strcmp(item_name, game_engine->item_names[i]) == 0) {
+            return game_engine->items[i];
+        } 
+    }
+    return NULL;
 }
 
 void engine_destroy() {

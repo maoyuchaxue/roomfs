@@ -152,6 +152,13 @@ static void roomfs_read(fuse_req_t req, fuse_ino_t ino, size_t size,
 	}
 }
 
+static void roomfs_release(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info *fi) {
+	if (is_file(ino)) {
+		file_close(ino);
+	}
+	fuse_reply_err(req, 0);
+}
+
 
 static struct fuse_lowlevel_ops roomfs_ll_oper = {
 	.lookup		= roomfs_lookup,
@@ -160,6 +167,7 @@ static struct fuse_lowlevel_ops roomfs_ll_oper = {
 	.opendir    = roomfs_opendir,
 	.open		= roomfs_open,
 	.read		= roomfs_read,
+	.release    = roomfs_release,
 };
 
 int main(int argc, char *argv[])
