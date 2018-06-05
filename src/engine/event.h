@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "room.h"
 #include "item.h"
+#include "global_state.h"
 #include "engine.h"
 
 struct item;
@@ -51,7 +52,7 @@ union event_sub_type {
 };
 
 struct event {
-    struct item *owner;
+    struct reaction *owner;
     enum event_op_type type;
     event_op op;
     union event_sub_type sub_type;
@@ -59,7 +60,7 @@ struct event {
     int paramc;
 };
 
-struct event *construct_event(struct item *owner, const char *target1, const char *op, const char *target2);
+struct event *construct_event(struct reaction *owner, const char *target1, const char *op, const char *target2);
 
 void event_init(struct event *cur_event);
 void trigger_event(struct event *cur_event);

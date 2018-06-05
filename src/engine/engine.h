@@ -13,12 +13,18 @@
 
 struct game_engine_s {
     struct room *entry_room;
+
     struct room **rooms;
     char **room_names;
     int total_rooms;
+
     struct item **items;
     char **item_names;
     int total_items;
+
+    int *global_states;
+    char **global_state_names;
+    int total_global_states;
 };
 
 void engine_init(const char *path);

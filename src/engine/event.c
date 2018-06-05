@@ -63,7 +63,10 @@ void op_item_unlink_from_owner(int paramc, void **paramv) {
 }
 
 void op_global_state_set(int paramc, void **paramv) {
-    // TODO: set global state
+    assert(paramc == 2);
+    int *target_gs = (int *)paramv[0];
+    int value = *(int *)paramv[1];
+    *target_gs = value;
 }
 
 void op_nop(int paramc, void **paramv) {
@@ -90,7 +93,7 @@ void event_init(struct event *cur_event) {
     cur_event->op = op_nop;
 }
 
-struct event *construct_event(struct item *owner, const char *target1, const char *op, const char *target2) {
+struct event *construct_event(struct reaction *owner, const char *target1, const char *op, const char *target2) {
     struct event *cur_event = malloc(sizeof(struct event));
     event_init(cur_event);
     cur_event->owner = owner;
@@ -113,7 +116,7 @@ struct event *construct_event(struct item *owner, const char *target1, const cha
                     cur_event->op = op_room_add_link_to_room;
                     make_params(cur_event, (void *)room_target, (void *)room_target2);
                 } else {
-                    item_target2 = name_to_room(target2);
+                    item_target2 = name_to_item(target2);
                     if (item_target2 != NULL) {
                         cur_event->sub_type.sub_type_on_room = E_ADD_LINK_TO_ITEM;
                         cur_event->op = op_room_add_link_to_item;
@@ -138,7 +141,7 @@ struct event *construct_event(struct item *owner, const char *target1, const cha
                     cur_event->op = op_room_add_link_to_room;
                     make_params(cur_event, (void *)room_target, (void *)room_target2);
                 } else {
-                    item_target2 = name_to_room(target2);
+                    item_target2 = name_to_item(target2);
                     if (item_target2 != NULL) {
                         cur_event->sub_type.sub_type_on_room = E_REMOVE_LINK_TO_ITEM;
                         cur_event->op = op_room_add_link_to_item;
@@ -174,6 +177,14 @@ struct event *construct_event(struct item *owner, const char *target1, const cha
                     break;
             }
         } else {
+            int *gs = name_to_global_state(target1);
+            if (gs && (*op == '=')) {
+                cur_event->sub_type.sub_type_on_global_state = E_SET_STATE;
+                cur_event->op = op_global_state_set;
+                int *value = malloc(sizeof(int));
+                sscanf(target2, "%d", value);
+                make_params(cur_event, (void *)gs, (void *)value);
+            }
             // TODO: global state perhaps
         }
     }

@@ -75,10 +75,14 @@ struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino) {
 
 void dir_description_getattr(fuse_ino_t ino, struct stat *stbuf) {
     struct room *cur_room = ino_to_description(ino);
+
+    const char *dir_look_prefix = "if [ -n \"$1\" ]; then \n `bash $1` \n else \n";
+    const char *dir_look_suffix = "\n fi \n";
+
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
     stbuf->st_ino = (fuse_ino_t)cur_room->description;
-	stbuf->st_size = strlen(cur_room->description);
+	stbuf->st_size = strlen(cur_room->description) + strlen(dir_look_prefix) + strlen(dir_look_suffix);
 }
 
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf) {
@@ -137,12 +141,22 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
             return;
         }
     }
-}
+}   
 
 
 void dir_description_read(fuse_req_t req, fuse_ino_t ino, size_t size,
 	off_t off, struct fuse_file_info *fi) {
     
+    printf("file read: %d %d\n", size, off);
     struct room *cur_room = ino_to_description(ino);
-	reply_buf_limited(req, cur_room->description, strlen(cur_room->description), off, size);
+
+    const char *dir_look_prefix = "if [ -n \"$1\" ]; then \n bash $1 \n else \n";
+    const char *dir_look_suffix = "\n fi \n";
+    char *dir_description = malloc(MAX_DESCRIPTION_LEN * 2 * sizeof(char));
+    strcpy(dir_description, dir_look_prefix);
+    dir_description = strcat(dir_description, cur_room->description);
+    dir_description = strcat(dir_description, dir_look_suffix);
+
+	reply_buf_limited(req, dir_description, strlen(dir_description), off, size);
+    free(dir_description);
 }
