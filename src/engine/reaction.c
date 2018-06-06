@@ -18,7 +18,7 @@ int pre_check_input(int paramc, void **paramv) {
     assert(paramc == 2);
     struct item *cur_item = (struct item *)paramv[0];
     char *target_result = (char *)paramv[1];
-
+    
     printf("compare input: %s, %s\n", cur_item->input_buffer, target_result);
     return (strcmp(cur_item->input_buffer, target_result) == 0) ? 1 : 0;
 }
@@ -34,7 +34,7 @@ int pre_check_input_item(int paramc, void **paramv) {
     if (target_item->inventory_flag == 0) {
         return 0;
     }
-    
+
     return (cur_flag == target_item->inventory_flag);
 }
 

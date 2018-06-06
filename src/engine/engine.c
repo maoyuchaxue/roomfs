@@ -7,13 +7,11 @@ char *wrap_sh_echo(char *buf) {
     char *wrapped = malloc((buf_len + 10));
 
     char *prefix = "echo \"";
-    int prefix_len = strlen(prefix);
     char *suffix = "\"";
-    int suffix_len = strlen(suffix);
 
     strcpy(wrapped, prefix);
-    strcpy(wrapped + prefix_len, buf);
-    strcpy(wrapped + prefix_len + buf_len, suffix);
+    wrapped = strcat(wrapped, buf);
+    wrapped = strcat(wrapped, suffix);
 
     free(buf);
     return wrapped;

@@ -65,6 +65,9 @@ void file_write(fuse_req_t req, fuse_ino_t ino, const char *buf,
 
     strncpy(cur_item->input_buffer + off, buf, write_size);
     cur_item->input_buffer[off + write_size] = '\0';
+    if (cur_item->input_buffer[off + write_size - 1] == '\n') {
+        cur_item->input_buffer[off + write_size - 1] = '\0';
+    }
     printf("after write: %s\n", cur_item->input_buffer);
     fuse_reply_write(req, write_size);
 }

@@ -77,14 +77,17 @@ struct dirbuf *read_inventory_dir(fuse_req_t req, fuse_ino_t ino) {
 
 
 void inventory_item_getattr(fuse_ino_t ino, struct stat *stbuf) {
-    char flag_str[MAX_OBJ_NAME_LEN];
+    char *flag_str = malloc(MAX_OBJ_NAME_LEN * sizeof(char));
     struct item *cur_item = ino_to_inv_item(ino);
 
     sprintf(flag_str, "%llu", cur_item->inventory_flag);
+    flag_str = wrap_sh_echo(flag_str);
+    printf("flagstr: %s\n", flag_str);
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
     stbuf->st_ino = ino;
     stbuf->st_size = strlen(flag_str);
+    free(flag_str);
 }
 
 
@@ -93,9 +96,13 @@ void inventory_item_read(fuse_req_t req, fuse_ino_t ino, size_t size,
         
     struct item *cur_item = ino_to_inv_item(ino);
     
-    char l[MAX_INPUT_BUFFER];
-    sprintf(l, "%llu\n", cur_item->inventory_flag);
-    reply_buf_limited(req, l, strlen(l), off, size);
+    char *flag_str = malloc(MAX_OBJ_NAME_LEN * sizeof(char));
+    sprintf(flag_str, "%llu", cur_item->inventory_flag);
+    flag_str = wrap_sh_echo(flag_str);
+
+    printf("flagstr: %s\n", flag_str);
+    reply_buf_limited(req, flag_str, strlen(flag_str), off, size);
+    free(flag_str);
 }
 
 

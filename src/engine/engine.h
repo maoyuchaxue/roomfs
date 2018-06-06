@@ -33,4 +33,7 @@ void engine_destroy();
 struct room *name_to_room(const char *room_name);
 struct item *name_to_item(const char *item_name);
 
+
+char *wrap_sh_echo(char *buf);
+
 #endif
