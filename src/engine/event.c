@@ -46,13 +46,13 @@ void op_item_change_description(int paramc, void **paramv) {
 void op_item_add_to_inventory(int paramc, void **paramv) {
     assert(paramc == 1);
     struct item *target_item = (struct item *)paramv[0];
-    // TODO: add to inventory
+    inventory_add_item(target_item);
 }
 
 void op_item_remove_from_inventory(int paramc, void **paramv) {
     assert(paramc == 1);
     struct item *target_item = (struct item *)paramv[0];
-    // TODO: remove from inventory
+    inventory_remove_item(target_item);
 }
 
 void op_item_unlink_from_owner(int paramc, void **paramv) {
@@ -138,13 +138,13 @@ struct event *construct_event(struct reaction *owner, const char *target1, const
                 room_target2 = name_to_room(target2);
                 if (room_target2 != NULL) {
                     cur_event->sub_type.sub_type_on_room = E_REMOVE_LINK_TO_ROOM;
-                    cur_event->op = op_room_add_link_to_room;
+                    cur_event->op = op_room_remove_link_to_room;
                     make_params(cur_event, (void *)room_target, (void *)room_target2);
                 } else {
                     item_target2 = name_to_item(target2);
                     if (item_target2 != NULL) {
                         cur_event->sub_type.sub_type_on_room = E_REMOVE_LINK_TO_ITEM;
-                        cur_event->op = op_room_add_link_to_item;
+                        cur_event->op = op_room_remove_link_to_item;
                         make_params(cur_event, (void *)room_target, (void *)item_target2);
                     }
                 }

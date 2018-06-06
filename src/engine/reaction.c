@@ -15,8 +15,27 @@ int pre_check_in_inventory(int paramc, void **paramv) {
 }
 
 int pre_check_input(int paramc, void **paramv) {
-    // TODO:
-    return 1;
+    assert(paramc == 2);
+    struct item *cur_item = (struct item *)paramv[0];
+    char *target_result = (char *)paramv[1];
+
+    printf("compare input: %s, %s\n", cur_item->input_buffer, target_result);
+    return (strcmp(cur_item->input_buffer, target_result) == 0) ? 1 : 0;
+}
+
+int pre_check_input_item(int paramc, void **paramv) {
+    assert(paramc == 2);
+    struct item *cur_item = (struct item *)paramv[0];
+    struct item *target_item = (struct item *)paramv[1];
+
+    unsigned long long cur_flag = 0;
+    sscanf(cur_item->input_buffer, "%llu\n", &cur_flag);
+
+    if (target_item->inventory_flag == 0) {
+        return 0;
+    }
+    
+    return (cur_flag == target_item->inventory_flag);
 }
 
 int pre_nop(int paramc, void **paramv) {
@@ -49,6 +68,7 @@ struct prerequisite *construct_pre(const char *target1, const char *op, const ch
     struct item *item_target = name_to_item(target1);
     if (item_target) {
         char *target_result = NULL;
+        struct item *item_target2 = NULL;
         switch (*op) {
             case '>':
                 cur_pre->type = P_IN_DIRECTORY;
@@ -56,12 +76,21 @@ struct prerequisite *construct_pre(const char *target1, const char *op, const ch
                 make_pre_param(cur_pre, (void *)item_target);
                 break;
             case '=':
-                target_result = malloc(sizeof(char) * MAX_OBJ_NAME_LEN);
+                target_result = malloc(sizeof(char) * MAX_INPUT_BUFFER);
                 strcpy(target_result, target2);
                 cur_pre->type = P_INPUT_CHECK;
                 cur_pre->checker = pre_check_input;
-                make_pre_params(cur_pre, (void *)target1, (void *)target_result);
+                make_pre_params(cur_pre, (void *)item_target, (void *)target_result);
                 break;
+            case '<':
+                item_target2 = name_to_item(target2);
+                if (item_target2 != NULL) {
+                    cur_pre->type = P_INPUT_ITEM_CHECK;
+                    cur_pre->checker = pre_check_input_item;
+                    make_pre_params(cur_pre, (void *)item_target, (void *)item_target2);
+                    break;
+                }
+
         }
     } else {
         int *gs_target = name_to_global_state(target1);

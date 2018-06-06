@@ -11,10 +11,13 @@ struct room;
 struct item {
     char *name;
     char *description;
-    // TODO: int is_in_inventory;
+    char *input_buffer;
     struct room *owner;
     struct reaction **reaction_list;
     int reaction_list_len;
+
+    int is_in_inventory;
+    unsigned long long inventory_flag;
 };
 
 void item_init(struct item *cur_item);
@@ -22,5 +25,7 @@ void item_init(struct item *cur_item);
 // void item_trigger_events(struct item *cur_item);
 void item_add_reaction(struct item *parent, struct reaction *target_reaction);
 void item_trigger_reactions(struct item *cur_item);
+
+
 
 #endif

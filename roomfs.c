@@ -31,7 +31,7 @@
 #include <assert.h>
 #include "src/engine/engine.h"
 #include "src/fs/dir.h"
-
+#include "src/fs/inventory_dir.h"
 
 /* Command line parsing */
 struct options {
@@ -59,7 +59,12 @@ static void roomfs_lookup(fuse_req_t req, fuse_ino_t parent, const char *name)
 
 		memset(&e, 0, sizeof(e));
 		dir_lookup(parent, name, &e);
+		fuse_reply_entry(req, &e);
 
+	} else if (is_inventory(parent)) {
+
+		memset(&e, 0, sizeof(e));
+		inventory_dir_lookup(parent, name, &e);
 		fuse_reply_entry(req, &e);
 
 	} else {
@@ -92,6 +97,21 @@ static void roomfs_getattr(fuse_req_t req, fuse_ino_t ino,
         fuse_reply_attr(req, &stbuf, 30);
 		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
 
+	} else if (is_inventory(ino)) {
+		inventory_dir_getattr(ino, &stbuf);
+        fuse_reply_attr(req, &stbuf, 30);
+		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
+
+	} else if (is_inventory_item(ino)) {
+		inventory_item_getattr(ino, &stbuf);
+        fuse_reply_attr(req, &stbuf, 30);
+		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
+
+	} else if (is_inv_check(ino)) {
+		inv_check_getattr(ino, &stbuf);
+        fuse_reply_attr(req, &stbuf, 30);
+		printf("roomfs getattr: ino - 0x%08x, found!\n", ino);
+
 	} else {
 		printf("roomfs getattr: ino - 0x%08x, not found!\n", ino);
         fuse_reply_err(req, ENOENT);
@@ -113,7 +133,14 @@ static void roomfs_readdir(fuse_req_t req, fuse_ino_t ino, size_t size,
                     min(b->size - off, size));
 		free(b->p);
 		free(b);
-    } else {
+    } else if (is_inventory(ino)) {
+		struct dirbuf *b = read_inventory_dir(req, ino);
+
+        fuse_reply_buf(req, b->p + off,
+                    min(b->size - off, size));
+		free(b->p);
+		free(b);
+	} else {
         fuse_reply_err(req, ENOTDIR);
     }
 }
@@ -122,10 +149,12 @@ static void roomfs_readdir(fuse_req_t req, fuse_ino_t ino, size_t size,
 static void roomfs_opendir(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info *fi) {
 	(void) fi;
 	printf("roomfs opendir: 0x%08x\n", ino);
-	if (!is_dir(ino)) {
-        fuse_reply_err(req, ENOTDIR);
-	} else {
+	if (is_dir(ino)) {
 		fuse_reply_open(req, fi);
+	} else if (is_inventory(ino)) {
+		fuse_reply_open(req, fi);
+	} else {
+        fuse_reply_err(req, ENOTDIR);
 	}
 }
 
@@ -135,6 +164,10 @@ static void roomfs_open(fuse_req_t req, fuse_ino_t ino,
 	if (is_dir_description(ino)) {
 		fuse_reply_open(req, fi);
 	} else if (is_file(ino)) {
+		fuse_reply_open(req, fi);
+	} else if (is_inv_check(ino)) {
+		fuse_reply_open(req, fi);
+	} else if (is_inventory_item(ino)) {
 		fuse_reply_open(req, fi);
 	} else {
 		fuse_reply_err(req, ENOENT);
@@ -147,6 +180,20 @@ static void roomfs_read(fuse_req_t req, fuse_ino_t ino, size_t size,
 		dir_description_read(req, ino, size, off, fi);
 	} else if (is_file(ino)) {
 		file_read(req, ino, size, off, fi);
+	} else if (is_inv_check(ino)) {
+		inv_check_read(req, ino, size, off, fi);
+	} else if (is_inventory_item(ino)) {
+		inventory_item_read(req, ino, size, off, fi);
+	} else {
+		fuse_reply_err(req, ENOENT);
+	}
+}
+
+ 
+static void roomfs_write(fuse_req_t req, fuse_ino_t ino, const char *buf,
+		size_t size, off_t off, struct fuse_file_info *fi) {
+	if (is_file(ino)) {
+		file_write(req, ino, buf, size, off, fi);
 	} else {
 		fuse_reply_err(req, ENOENT);
 	}
@@ -157,6 +204,7 @@ static void roomfs_release(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info
 		file_close(ino);
 	}
 	fuse_reply_err(req, 0);
+	
 }
 
 
@@ -168,6 +216,7 @@ static struct fuse_lowlevel_ops roomfs_ll_oper = {
 	.open		= roomfs_open,
 	.read		= roomfs_read,
 	.release    = roomfs_release,
+	.write      = roomfs_write,
 };
 
 int main(int argc, char *argv[])

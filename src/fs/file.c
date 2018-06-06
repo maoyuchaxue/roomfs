@@ -44,7 +44,29 @@ void file_read(fuse_req_t req, fuse_ino_t ino, size_t size,
     printf("file read: %d %d\n", size, off);
     
     struct item *cur_item = ino_to_item(ino);
-	reply_buf_limited(req, cur_item->description, strlen(cur_item->description), off, size);
+    if (cur_item->is_in_inventory) {
+        char l[MAX_INPUT_BUFFER];
+        sprintf(l, "%llu\n", cur_item->inventory_flag);
+    	reply_buf_limited(req, l, strlen(l), off, size);
+    } else {
+    	reply_buf_limited(req, cur_item->description, strlen(cur_item->description), off, size);
+    }
+
+}
+
+
+void file_write(fuse_req_t req, fuse_ino_t ino, const char *buf,
+		size_t size, off_t off, struct fuse_file_info *fi) {
+    struct item *cur_item = ino_to_item(ino);
+    size_t write_size = size;
+    if (write_size + off > MAX_INPUT_BUFFER-1) {
+        write_size = MAX_INPUT_BUFFER - off - 1;
+    }
+
+    strncpy(cur_item->input_buffer + off, buf, write_size);
+    cur_item->input_buffer[off + write_size] = '\0';
+    printf("after write: %s\n", cur_item->input_buffer);
+    fuse_reply_write(req, write_size);
 }
 
 void file_close(fuse_ino_t ino) {

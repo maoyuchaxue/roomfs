@@ -6,6 +6,7 @@
 #include "item.h"
 #include "global_state.h"
 #include "engine.h"
+#include "inventory.h"
 
 struct item;
 struct room;

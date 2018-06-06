@@ -6,6 +6,7 @@
 #include <fuse_lowlevel.h>
 #include "../engine/engine.h"
 #include "file.h"
+#include "../engine/inventory.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,9 +15,14 @@ struct dirbuf {
     size_t size;
 };
 
+void dirbuf_add(fuse_req_t req, struct dirbuf *b, const char *name,
+                    fuse_ino_t ino);
+
 struct room *ino_to_room(fuse_ino_t ino);
 int is_dir(fuse_ino_t ino);
 int is_dir_description(fuse_ino_t ino);
+int is_inventory(fuse_ino_t ino);
+
 struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino);
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf);
 void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e);

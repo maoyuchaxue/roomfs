@@ -14,6 +14,7 @@ enum prerequisite_type {
     P_GLOBAL_STATE,
     P_NO_CHECK,
     P_INPUT_CHECK,
+    P_INPUT_ITEM_CHECK,
 };
 
 typedef int (*pre_checker)(int , void **);

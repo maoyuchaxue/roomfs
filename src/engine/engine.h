@@ -6,6 +6,7 @@
 #include "item.h"
 #include "event.h"
 #include "const.h"
+#include "inventory.h"
 
 #include <stdio.h>
 #include <stdlib.h>

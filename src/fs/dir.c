@@ -1,6 +1,7 @@
 #include "dir.h"
 
 extern struct game_engine_s *game_engine; 
+extern struct inventory inv;
 
 struct room *ino_to_room(fuse_ino_t ino) {
     if (ino == FUSE_ROOT_ID) {
@@ -37,7 +38,7 @@ int is_dir_description(fuse_ino_t ino) {
 }
 
 
-static void dirbuf_add(fuse_req_t req, struct dirbuf *b, const char *name,
+void dirbuf_add(fuse_req_t req, struct dirbuf *b, const char *name,
                        fuse_ino_t ino) {
     struct stat stbuf;
     size_t oldsize = b->size;
@@ -68,6 +69,7 @@ struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino) {
         printf("0x%08x,\n", cur_room->items[i]);
         dirbuf_add(req, b, cur_room->items[i]->name, (fuse_ino_t)(cur_room->items[i]));
     }
+    dirbuf_add(req, b, "inventory", (fuse_ino_t)(&inv));
 
     return b;
 }
@@ -114,6 +116,16 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
         e->attr_timeout = 1.0;
         e->entry_timeout = 1.0;
         dir_description_getattr(e->ino, &(e->attr));
+        printf("lookup_dir found(look): 0x%08x\n", e->ino);
+        return;
+    }
+
+    const char *inventory_dir = "inventory";
+    if (strcmp(name, inventory_dir) == 0) {
+        e->ino = (fuse_ino_t)&inv;
+        e->attr_timeout = 1.0;
+        e->entry_timeout = 1.0;
+        inventory_dir_getattr(e->ino, &(e->attr));
         printf("lookup_dir found(look): 0x%08x\n", e->ino);
         return;
     }

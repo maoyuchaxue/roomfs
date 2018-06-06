@@ -162,6 +162,8 @@ void read_item_setting(FILE *f, struct item *cur_item) {
 }
 
 void engine_init(const char *path) {
+    inventory_init();
+
     game_engine = malloc(sizeof(struct game_engine_s));
 
     FILE *f = fopen(path, "r");
@@ -220,7 +222,7 @@ void engine_init(const char *path) {
     fscanf(f, "globals: %d\n", &global_nums);
     
     char **global_names = (char **) malloc(sizeof(char *) * global_nums);
-    int *globals = (int **) malloc(sizeof(int) * global_nums);
+    int *globals = (int *) malloc(sizeof(int) * global_nums);
 
     char global_name[MAX_OBJ_NAME_LEN];
     int init_value;
