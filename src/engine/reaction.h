@@ -28,8 +28,9 @@ struct prerequisite {
 };
 
 struct reaction {
-    struct prerequisite *pre;
     struct item *owner;
+    struct prerequisite **pre_list;
+    int pre_list_len;
     struct event **event_list;
     int event_list_len;
 };
@@ -38,8 +39,10 @@ struct prerequisite *construct_pre(const char *target1, const char *op, const ch
 void pre_init(struct prerequisite *pre);
 int check_prerequisite(struct prerequisite *pre);
 
-struct reaction *construct_reaction(struct item *owner, struct prerequisite *pre);
+struct reaction *construct_reaction(struct item *owner);
+void reaction_add_pre(struct reaction *parent, struct prerequisite *pre);
 void reaction_add_event(struct reaction *parent, struct event *target_event);
+int check_prerequisites(struct reaction *cur_reaction);
 int trigger_reaction(struct reaction *cur_reaction);
 
 #endif

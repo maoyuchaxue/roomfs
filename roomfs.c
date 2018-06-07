@@ -39,7 +39,7 @@ struct options {
 };
 
 static struct options options = {
-    .path = "./res/demo.conf"
+    .path = "./res/test_multi_prerequisites.conf"
 };
 
 #define OPTION(t, p)                           \
@@ -230,6 +230,9 @@ int main(int argc, char *argv[])
     if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
         return 1;
 
+
+	printf("path: %s\n", options.path);
+
 	if (fuse_parse_cmdline(&args, &opts) != 0)
 		return 1;
 
@@ -246,6 +249,7 @@ int main(int argc, char *argv[])
 		ret = 0;
 		goto err_out1;
 	}
+
 
     engine_init(options.path);
 

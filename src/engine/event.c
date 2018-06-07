@@ -62,6 +62,12 @@ void op_item_unlink_from_owner(int paramc, void **paramv) {
     target_item->owner = NULL;
 }
 
+void op_item_clear_input_buffer(int paramc, void **paramv) {
+    assert(paramc == 1);
+    struct item *target_item = (struct item *)paramv[0];
+    memset(target_item->input_buffer, 0, MAX_INPUT_BUFFER);
+}
+
 void op_global_state_set(int paramc, void **paramv) {
     assert(paramc == 2);
     int *target_gs = (int *)paramv[0];
@@ -156,10 +162,18 @@ struct event *construct_event(struct reaction *owner, const char *target1, const
             cur_event->type = E_OP_ON_ITEM;
             switch (*op) {
                 case 'x':
-                    cur_event->sub_type.sub_type_on_item = E_UNLINK_FROM_OWNER;
-                    cur_event->op = op_item_unlink_from_owner;
-                    make_param(cur_event, (void *)item_target);
-                    break;
+                    if (strcmp(target2, "owner") == 0) {
+                        cur_event->sub_type.sub_type_on_item = E_UNLINK_FROM_OWNER;
+                        cur_event->op = op_item_unlink_from_owner;
+                        make_param(cur_event, (void *)item_target);
+                        break;
+                    }
+                    if (strcmp(target2, "input") == 0) {
+                        cur_event->sub_type.sub_type_on_item = E_CLEAR_INPUT_BUFFER;
+                        cur_event->op = op_item_clear_input_buffer;
+                        make_param(cur_event, (void *)item_target);
+                        break;
+                    }
                 case '+':
                     cur_event->sub_type.sub_type_on_item = E_CHANGE_ITEM_DESCRIPTION;
                     cur_event->op = op_item_change_description;

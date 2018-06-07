@@ -30,6 +30,7 @@ enum event_sub_type_on_item {
     E_REMOVE_FROM_INVENTORY,
     E_CHANGE_ITEM_DESCRIPTION,
     E_UNLINK_FROM_OWNER,
+    E_CLEAR_INPUT_BUFFER,
 };
 
 enum event_sub_type_on_room {

@@ -89,24 +89,25 @@ void read_room_setting(FILE *f, struct room *cur_room) {
 }
 
 struct reaction *read_prerequisite_setting(FILE *f, struct item *cur_item) {
-    struct prerequisite *pre = NULL;
 
+    struct reaction *cur_reaction = construct_reaction(cur_item);
+
+    struct prerequisite *pre = NULL;
     char target1[MAX_OBJ_NAME_LEN];
     fscanf(f, "%s", target1);
     printf("%s\n", target1);
-    if (strcmp(target1, "begin") == 0) {
-        pre = construct_pre("", "", "");
-    } else {
+
+    while (strcmp(target1, "begin") != 0) {
         char op_char;
         fscanf(f, " %c", &op_char);
         char *target2 = malloc(sizeof(char) * MAX_OBJ_NAME_LEN);
         fscanf(f, " %s\n", target2);
         pre = construct_pre(target1, &op_char, target2);
+        reaction_add_pre(cur_reaction, pre);
 
         fscanf(f, "%s", target1);
     }
 
-    struct reaction *cur_reaction = construct_reaction(cur_item, pre);
     item_add_reaction(cur_item, cur_reaction);
     return cur_reaction;
 }
@@ -137,6 +138,7 @@ void read_reaction_setting(FILE *f, struct item *cur_item) {
             target2 = read_multiline_description(f);
         } 
 
+        printf("read event: %s %c %s\n", target1, op_char, target2);
         cur_event = construct_event(cur_reaction, target1, &op_char, target2);
 
         reaction_add_event(cur_reaction, cur_event);
@@ -198,8 +200,9 @@ void engine_init(const char *path) {
     struct item **items = (struct item **) malloc(sizeof(struct item *) * item_nums);
 
     char item_name[MAX_OBJ_NAME_LEN];
+    int in_directory;
     for (int i = 0; i < item_nums; i++) {
-        fscanf(f, "%s\n", item_name);
+        fscanf(f, "%s %d\n", item_name, &in_directory);
 
         items[i] = (struct item *) malloc(sizeof(struct item));
 
@@ -210,6 +213,9 @@ void engine_init(const char *path) {
         item_init(items[i]);
         items[i]->name = item_name_cpy;
         item_names[i] = item_name_cpy;
+        if (in_directory) {
+            inventory_add_item(items[i]);
+        }
     }
 
     game_engine->items = items;

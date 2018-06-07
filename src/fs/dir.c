@@ -19,7 +19,7 @@ struct room *ino_to_room(fuse_ino_t ino) {
 struct room *ino_to_description(fuse_ino_t ino) {
 
     for (int i = 0; i < game_engine->total_rooms; i++) {
-        if ((fuse_ino_t)game_engine->rooms[i]->description == ino) {
+        if ((fuse_ino_t)&(game_engine->rooms[i]->description) == ino) {
             return game_engine->rooms[i];
         }
     }
@@ -59,7 +59,7 @@ struct dirbuf *read_dir(fuse_req_t req, fuse_ino_t ino) {
     memset(b, 0, sizeof(struct dirbuf));
 
     dirbuf_add(req, b, ".", (fuse_ino_t)cur_room);
-    dirbuf_add(req, b, "look", (fuse_ino_t)(cur_room->description));
+    dirbuf_add(req, b, "look", (fuse_ino_t)&(cur_room->description));
     for (int i = 0; i < cur_room->total_adjacent_rooms; i++) {
         printf("0x%08x,\n", cur_room->adjacent_rooms[i]);
         dirbuf_add(req, b, cur_room->adjacent_rooms[i]->name, (fuse_ino_t)(cur_room->adjacent_rooms[i]));
@@ -83,7 +83,7 @@ void dir_description_getattr(fuse_ino_t ino, struct stat *stbuf) {
 
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
-    stbuf->st_ino = (fuse_ino_t)cur_room->description;
+    stbuf->st_ino = (fuse_ino_t)&(cur_room->description);
 	stbuf->st_size = strlen(cur_room->description) + strlen(dir_look_prefix) + strlen(dir_look_suffix);
 }
 
@@ -112,7 +112,7 @@ void dir_lookup(fuse_ino_t parent, const char *name, struct fuse_entry_param *e)
 
     const char *dir_description = "look";
     if (strcmp(name, dir_description) == 0) {
-        e->ino = (fuse_ino_t)parent_room->description;
+        e->ino = (fuse_ino_t)&(parent_room->description);
         e->attr_timeout = 1.0;
         e->entry_timeout = 1.0;
         dir_description_getattr(e->ino, &(e->attr));
