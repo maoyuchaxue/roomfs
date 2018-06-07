@@ -7,6 +7,7 @@
 #include "event.h"
 #include "const.h"
 #include "inventory.h"
+#include "global_state.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +24,7 @@ struct game_engine_s {
     char **item_names;
     int total_items;
 
-    int *global_states;
+    struct global_state **global_states;
     char **global_state_names;
     int total_global_states;
 };

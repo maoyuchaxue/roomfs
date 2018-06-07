@@ -2,11 +2,14 @@
 
 
 int pre_check_global_state(int paramc, void **paramv) {
-    assert(paramc == 2);
-    int *gs = (int *)paramv[0];
-    int *value = (int *)paramv[1];
-    printf("check global: %d, %d\n", *gs, *value);
-    return (gs && value && *gs == *value) ? 1 : 0;
+    assert(paramc == 3);
+    struct global_state *gs = (struct global_state *)paramv[0];
+    void *value = paramv[1];
+    enum global_state_cmp_op *cmp_op = (enum global_state_cmp_op *)paramv[2];
+
+    // printf("%d %d %d \n", gs, value, cmp_op);
+
+    return gs && value && cmp_op && check_global_state(gs, value, *cmp_op);
 }
 
 int pre_check_in_inventory(int paramc, void **paramv) {
@@ -57,6 +60,14 @@ void make_pre_params(struct prerequisite *p, void *p1, void *p2) {
     p->paramv[1] = p2;
 }
 
+void make_pre_tri_params(struct prerequisite *p, void *p1, void *p2, void *p3) {
+    p->paramc = 3;
+    p->paramv = malloc(sizeof(void *) * 3);
+    p->paramv[0] = p1;
+    p->paramv[1] = p2;
+    p->paramv[2] = p3;
+}
+
 struct prerequisite *construct_pre(const char *target1, const char *op, const char *target2) {
     struct prerequisite *cur_pre = malloc(sizeof(struct prerequisite));
     pre_init(cur_pre);
@@ -94,18 +105,49 @@ struct prerequisite *construct_pre(const char *target1, const char *op, const ch
 
         }
     } else {
-        int *gs_target = name_to_global_state(target1);
-        int *target_value = malloc(sizeof(int));
-        sscanf(target2, "%d", target_value);
+        struct global_state *gs_target = name_to_global_state(target1);
 
         if (gs_target) {
-            switch (*op) {
-                case '=':
-                    cur_pre->type = P_GLOBAL_STATE;
-                    cur_pre->checker = pre_check_global_state;
-                    make_pre_params(cur_pre, (void *)gs_target, (void *)target_value);
+            void *target_value = NULL;
+            printf("gs_target->type %d\n", gs_target->type);
+            switch (gs_target->type) {
+                case GS_INT:
+                    target_value = (void *)malloc(sizeof(int));
+                    sscanf(target2, "%d", target_value);
+                    break;
+
+                case GS_FLOAT:
+                    target_value = (void *)malloc(sizeof(float));
+                    sscanf(target2, "%f", target_value);
+                    break;
+
+                case GS_STRING:
+                    target_value = (void *)malloc(sizeof(char) * MAX_INPUT_BUFFER);
+                    sscanf(target2, "%s", target_value);
                     break;
             }
+
+
+            enum global_state_cmp_op *cmp_op = malloc(sizeof(enum global_state_cmp_op));
+
+            if (strcmp(op, "==") == 0) {
+                *cmp_op = GS_EQUAL;
+            } else if (strcmp(op, ">") == 0) {
+                *cmp_op = GS_GREATER;
+            } else if (strcmp(op, "<") == 0) {
+                *cmp_op = GS_LESS;
+            } else if (strcmp(op, ">=") == 0) {
+                *cmp_op = GS_GE;
+            } else if (strcmp(op, "<=") == 0) {
+                *cmp_op = GS_LE;
+            } else if (strcmp(op, "!=") == 0) {
+                *cmp_op = GS_NEQUAL;
+            }
+
+            cur_pre->type = P_GLOBAL_STATE;
+            cur_pre->checker = pre_check_global_state;
+
+            make_pre_tri_params(cur_pre, (void *)gs_target, target_value, (void *)cmp_op);
         }
     }
 

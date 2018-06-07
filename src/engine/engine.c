@@ -98,8 +98,8 @@ struct reaction *read_prerequisite_setting(FILE *f, struct item *cur_item) {
     printf("%s\n", target1);
 
     while (strcmp(target1, "begin") != 0) {
-        char op_char;
-        fscanf(f, " %c", &op_char);
+        char op_char[4];
+        fscanf(f, " %s", &op_char);
         char *target2 = malloc(sizeof(char) * MAX_OBJ_NAME_LEN);
         fscanf(f, " %s\n", target2);
         pre = construct_pre(target1, &op_char, target2);
@@ -226,15 +226,36 @@ void engine_init(const char *path) {
     fscanf(f, "globals: %d\n", &global_nums);
     
     char **global_names = (char **) malloc(sizeof(char *) * global_nums);
-    int *globals = (int *) malloc(sizeof(int) * global_nums);
+    struct global_state **globals = (struct global_state *) malloc(sizeof(struct global_state *) * global_nums);
 
     char global_name[MAX_OBJ_NAME_LEN];
-    int init_value;
+    char gs_type[MAX_OBJ_NAME_LEN];
+    
     for (int i = 0; i < global_nums; i++) {
-        fscanf(f, "%s %d\n", global_name, &init_value);
-        globals[i] = init_value;
+        globals[i] = malloc(sizeof(struct global_state));
 
-        printf("%s, %d\n", global_name, init_value);
+        fscanf(f, "%s %s\n", global_name, gs_type);
+        printf("%s|%s\n", global_name, gs_type);
+        if (strcmp(gs_type, "int") == 0) {
+            int *init_value_p = malloc(sizeof(int));
+            fscanf(f, " %d\n", init_value_p);
+            globals[i]->type = GS_INT;
+            set_global_state(globals[i], (void *)init_value_p);
+
+        } else if (strcmp(gs_type, "float") == 0) {
+            float *init_value_p = malloc(sizeof(float));
+            fscanf(f, " %f\n", init_value_p);
+            printf("%s|%s|%f\n", global_name, gs_type, *init_value_p);
+            globals[i]->type = GS_FLOAT;
+            set_global_state(globals[i], (void *)init_value_p);
+
+        } else if (strcmp(gs_type, "string") == 0) {
+            char *init_value_p = malloc(sizeof(char) * MAX_INPUT_BUFFER);
+            fscanf(f, " %s\n", init_value_p);
+            globals[i]->type = GS_STRING;
+            set_global_state(globals[i], (void *)(&init_value_p));
+        }
+
         char *global_name_cpy = malloc(sizeof(char) * (strlen(global_name) + 1));
         strcpy(global_name_cpy, global_name);
 
@@ -244,7 +265,6 @@ void engine_init(const char *path) {
     game_engine->global_states = globals;
     game_engine->global_state_names = global_names;
     game_engine->total_global_states = global_nums;
-
 
     char obj_name[MAX_OBJ_NAME_LEN];
     while (fscanf(f, "%s\n", obj_name) == 1) {
