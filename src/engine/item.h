@@ -4,13 +4,13 @@
 #include "room.h"
 #include "event.h"
 #include "reaction.h"
+#include "description.h"
 
 struct room;
 
-
 struct item {
     char *name;
-    char *description;
+    struct description *description;
     char *input_buffer;
     struct room *owner;
     struct reaction **reaction_list;

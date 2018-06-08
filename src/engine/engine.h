@@ -8,6 +8,7 @@
 #include "const.h"
 #include "inventory.h"
 #include "global_state.h"
+#include "description.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,5 +37,6 @@ struct item *name_to_item(const char *item_name);
 
 
 char *wrap_sh_echo(char *buf);
+struct description *read_multiline_description(FILE *f);
 
 #endif

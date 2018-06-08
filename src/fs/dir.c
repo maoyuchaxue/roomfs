@@ -84,7 +84,11 @@ void dir_description_getattr(fuse_ino_t ino, struct stat *stbuf) {
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
     stbuf->st_ino = (fuse_ino_t)&(cur_room->description);
-	stbuf->st_size = strlen(cur_room->description) + strlen(dir_look_prefix) + strlen(dir_look_suffix);
+
+    char *des_text = description_gen_text(cur_room->description);
+    des_text = wrap_sh_echo(des_text);
+	stbuf->st_size = strlen(des_text) + strlen(dir_look_prefix) + strlen(dir_look_suffix);
+    free(des_text);
 }
 
 void dir_getattr(fuse_ino_t ino, struct stat *stbuf) {
@@ -166,9 +170,12 @@ void dir_description_read(fuse_req_t req, fuse_ino_t ino, size_t size,
     const char *dir_look_suffix = "\n fi \n";
     char *dir_description = malloc(MAX_DESCRIPTION_LEN * 2 * sizeof(char));
     strcpy(dir_description, dir_look_prefix);
-    dir_description = strcat(dir_description, cur_room->description);
+    char *des_text = description_gen_text(cur_room->description);
+    des_text = wrap_sh_echo(des_text);
+    dir_description = strcat(dir_description, des_text);
     dir_description = strcat(dir_description, dir_look_suffix);
 
 	reply_buf_limited(req, dir_description, strlen(dir_description), off, size);
     free(dir_description);
+    free(des_text);
 }

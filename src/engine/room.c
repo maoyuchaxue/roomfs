@@ -5,7 +5,7 @@ void room_init(struct room *cur_room) {
     cur_room->adjacent_rooms = malloc(0);
     cur_room->total_items = 0;
     cur_room->items = malloc(0);
-    cur_room->description = "";
+    cur_room->description = NULL;
 }
 
 int room_has_adj_room(struct room *parent, struct room *target_room) {

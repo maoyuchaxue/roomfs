@@ -1,7 +1,7 @@
 
 
-#ifndef _ROOMFS_ENGINE
-#define _ROOMFS_ENGINE
+#ifndef _ROOMFS_EVAL
+#define _ROOMFS_EVAL
 
 #include "global_state.h"
 #include <string.h>

@@ -44,6 +44,24 @@ void set_global_state(struct global_state *gs, void *value_p) {
     }
 }
 
+char *global_state_to_text(struct global_state *gs, const char *fmt) {
+    char *text = malloc(sizeof(char) * MAX_DESCRIPTION_LEN);
+    
+    switch (gs->type) {
+        case GS_INT:
+            sprintf(text, fmt, gs->value.v_int);
+            break;
+        case GS_STRING:
+            sprintf(text, fmt, gs->value.v_str);
+            break;
+        case GS_FLOAT:
+            sprintf(text, fmt, gs->value.v_float);
+            break;
+    }
+    printf("global_state to text: %s, %s \n", fmt, text);
+    return text;
+}
+
 int float_cmp(float f1, float f2) {
     return (f1 - f2 <= 0.000001 && f1 - f2 >= -0.000001);
 }

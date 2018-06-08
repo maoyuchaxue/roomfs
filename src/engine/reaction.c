@@ -113,17 +113,17 @@ struct prerequisite *construct_pre(const char *target1, const char *op, const ch
             switch (gs_target->type) {
                 case GS_INT:
                     target_value = (void *)malloc(sizeof(int));
-                    sscanf(target2, "%d", target_value);
+                    sscanf(target2, "%d", (int *)target_value);
                     break;
 
                 case GS_FLOAT:
                     target_value = (void *)malloc(sizeof(float));
-                    sscanf(target2, "%f", target_value);
+                    sscanf(target2, "%f", (float *)target_value);
                     break;
 
                 case GS_STRING:
                     target_value = (void *)malloc(sizeof(char) * MAX_INPUT_BUFFER);
-                    sscanf(target2, "%s", target_value);
+                    sscanf(target2, "%s", (char *)target_value);
                     break;
             }
 

@@ -29,4 +29,7 @@ void* get_global_state(struct global_state *gs);
 void set_global_state(struct global_state *gs, void *value_p);
 int check_global_state(struct global_state *gs, void *value_p, enum global_state_cmp_op op); // returns 1 if global_state[name] op value
 
+
+char *global_state_to_text(struct global_state *gs, const char *fmt);
+
 #endif

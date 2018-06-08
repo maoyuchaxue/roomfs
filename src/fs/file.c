@@ -22,7 +22,9 @@ void file_getattr(fuse_ino_t ino, struct stat *stbuf) {
     stbuf->st_mode = S_IFREG | 0777;
     stbuf->st_nlink = 1;
     stbuf->st_ino = (fuse_ino_t)cur_item;
-	stbuf->st_size = strlen(cur_item->description);
+    char *des_text = wrap_sh_echo(description_gen_text(cur_item->description));
+	stbuf->st_size = strlen(des_text);
+    free(des_text);
 }
 
 
@@ -49,7 +51,10 @@ void file_read(fuse_req_t req, fuse_ino_t ino, size_t size,
         sprintf(l, "%llu\n", cur_item->inventory_flag);
     	reply_buf_limited(req, l, strlen(l), off, size);
     } else {
-    	reply_buf_limited(req, cur_item->description, strlen(cur_item->description), off, size);
+        char *des_text = description_gen_text(cur_item->description);
+        des_text = wrap_sh_echo(des_text);
+    	reply_buf_limited(req, des_text, strlen(des_text), off, size);
+        free(des_text);
     }
 
 }

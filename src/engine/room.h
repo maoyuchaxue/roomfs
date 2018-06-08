@@ -5,10 +5,11 @@
 #include <string.h>
 #include <stdio.h>
 #include "item.h"
+#include "description.h"
 
 struct room {
     char *name;
-    char *description;
+    struct description *description;
     struct room **adjacent_rooms;
     struct item **items;
     int total_adjacent_rooms;

@@ -114,10 +114,12 @@ char *construct_inv_check_script() {
 
     for (int i = 0; i < inv.item_list_len; i++) {
         char *item_name = inv.item_list[i]->name;
-        char *item_description = inv.item_list[i]->description;
+        char *item_description = description_gen_text(inv.item_list[i]->description);
+        item_description = wrap_sh_echo(item_description);
         char tmp_f[MAX_DESCRIPTION_LEN];
 
         sprintf(tmp_f, "if [ \"$1\" == \"%s\" ]; then \n  %s\n  exit\nfi\n", item_name, item_description);
+        free(item_description);
         f = strcat(f, tmp_f);
     }
 

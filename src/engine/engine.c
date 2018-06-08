@@ -17,7 +17,9 @@ char *wrap_sh_echo(char *buf) {
     return wrapped;
 }
 
-char *read_multiline_description(FILE *f) {
+struct description *read_multiline_description(FILE *f) {
+
+    struct description* des = new_description();
 
     char *buf = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
     char c;
@@ -38,13 +40,83 @@ char *read_multiline_description(FILE *f) {
         i++;
     }
 
-    return wrap_sh_echo(buf);
+    printf("now buf: %s\n", buf);
+
+    int len = strlen(buf);
+    char *cur_text = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
+    int cur_text_i = 0;
+
+    i = 0;
+    while (i < len) {
+        if (buf[i] == '%' && (i == 0 || buf[i-1] != '\\') ) { // %d[global_state]
+
+            cur_text[cur_text_i] = '\0';
+
+            printf("now cur_text: \"%s\"\n", cur_text);
+            struct description_item *item = malloc(sizeof(struct description_item));
+            item->type = D_STRING;
+            item->text = cur_text;
+            cur_text = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
+            cur_text_i = 0;
+            description_add_item(des, item);
+            // printf("cur_text\n");
+
+            struct description_item *gs_item = malloc(sizeof(struct description_item));
+            gs_item->type = D_GS;
+            while (buf[i] != '[') {
+                cur_text[cur_text_i] = buf[i];
+                i++;
+                cur_text_i++;
+            }
+            cur_text[cur_text_i] = '\0';
+            printf("now cur_text: \"%s\"\n", cur_text);            
+            gs_item->text = cur_text;
+            i++;
+
+            cur_text = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
+            cur_text_i = 0;
+            while (buf[i] != ']') {
+                cur_text[cur_text_i] = buf[i];
+                i++;
+                cur_text_i++;
+            }
+            i++;
+            cur_text[cur_text_i] = '\0';
+            printf("now cur_text: \"%s\"\n", cur_text);            
+            gs_item->related_gs = name_to_global_state(cur_text);
+            description_add_item(des, gs_item);
+            free(cur_text);
+            
+            cur_text = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
+            cur_text_i = 0;
+
+        } else if (buf[i] == '\\') {
+            i++;
+            cur_text[cur_text_i] = buf[i];
+            cur_text_i++;
+            i++;
+        } else {
+            cur_text[cur_text_i] = buf[i];
+            cur_text_i++;
+            i++;
+        }
+    }
+
+    cur_text[cur_text_i] = '\0';
+    printf("now cur_text: \"%s\"\n", cur_text);     
+    struct description_item *item = malloc(sizeof(struct description_item));
+    item->type = D_STRING;
+    item->text = cur_text;
+    description_add_item(des, item);
+
+    free(buf);
+    return des;
 }
 
 void read_room_setting(FILE *f, struct room *cur_room) {
 
     cur_room->description = read_multiline_description(f);
-    printf("orig: %s\n", cur_room->description);
+    // printf("orig: %s\n", cur_room->description);
 
     int related_objs = 0;
     fscanf(f, "%d\n", &related_objs);
@@ -99,10 +171,10 @@ struct reaction *read_prerequisite_setting(FILE *f, struct item *cur_item) {
 
     while (strcmp(target1, "begin") != 0) {
         char op_char[4];
-        fscanf(f, " %s", &op_char);
+        fscanf(f, " %s", &(op_char[0]));
         char *target2 = malloc(sizeof(char) * MAX_OBJ_NAME_LEN);
         fscanf(f, " %s\n", target2);
-        pre = construct_pre(target1, &op_char, target2);
+        pre = construct_pre(target1, &(op_char[0]), target2);
         reaction_add_pre(cur_reaction, pre);
 
         fscanf(f, "%s", target1);
@@ -147,7 +219,7 @@ void read_reaction_setting(FILE *f, struct item *cur_item) {
 
 void read_item_setting(FILE *f, struct item *cur_item) {
     cur_item->description = read_multiline_description(f);
-    printf("itm: %s\n", cur_item->description);
+    // printf("itm: %s\n", cur_item->description);
 
     while (1) {
         char operation[MAX_OBJ_NAME_LEN];
@@ -226,7 +298,7 @@ void engine_init(const char *path) {
     fscanf(f, "globals: %d\n", &global_nums);
     
     char **global_names = (char **) malloc(sizeof(char *) * global_nums);
-    struct global_state **globals = (struct global_state *) malloc(sizeof(struct global_state *) * global_nums);
+    struct global_state **globals = (struct global_state **) malloc(sizeof(struct global_state *) * global_nums);
 
     char global_name[MAX_OBJ_NAME_LEN];
     char gs_type[MAX_OBJ_NAME_LEN];

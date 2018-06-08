@@ -4,7 +4,7 @@
 void op_room_change_description(int paramc, void **paramv) {
     assert(paramc == 2);
     struct room *target_room = (struct room *)paramv[0];
-    char *description = (char *)paramv[1];
+    struct description *description = (struct description *)paramv[1];
     target_room->description = description;
 }
 
@@ -39,7 +39,7 @@ void op_room_remove_link_to_room (int paramc, void **paramv) {
 void op_item_change_description(int paramc, void **paramv) {
     assert(paramc == 2);
     struct item *target_item = (struct item *)paramv[0];
-    char *description = (char *)paramv[1];
+    struct description *description = (struct description *)paramv[1];
     target_item->description = description;
 }
 
@@ -70,9 +70,9 @@ void op_item_clear_input_buffer(int paramc, void **paramv) {
 
 void op_global_state_set(int paramc, void **paramv) {
     assert(paramc == 2);
-    int *target_gs = (int *)paramv[0];
-    int value = *(int *)paramv[1];
-    *target_gs = value;
+    struct global_state *target_gs = (struct global_state *)paramv[0];
+    void *value_p = paramv[1];
+    set_global_state(target_gs, value_p);
 }
 
 void op_nop(int paramc, void **paramv) {
@@ -191,7 +191,7 @@ struct event *construct_event(struct reaction *owner, const char *target1, const
                     break;
             }
         } else {
-            int *gs = name_to_global_state(target1);
+            struct global_state *gs = name_to_global_state(target1);
             if (gs && (*op == '=')) {
                 cur_event->sub_type.sub_type_on_global_state = E_SET_STATE;
                 cur_event->op = op_global_state_set;

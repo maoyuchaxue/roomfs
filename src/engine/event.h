@@ -7,6 +7,7 @@
 #include "global_state.h"
 #include "engine.h"
 #include "inventory.h"
+#include "description.h"
 
 struct item;
 struct room;

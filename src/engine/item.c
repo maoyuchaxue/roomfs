@@ -8,6 +8,7 @@ void item_init(struct item *cur_item) {
     memset(cur_item->input_buffer, 0, MAX_INPUT_BUFFER);
     cur_item->is_in_inventory = 0;
     cur_item->inventory_flag = 0;
+    cur_item->description = NULL;
 }
 
 void item_add_reaction(struct item *parent, struct reaction *target_reaction) {
