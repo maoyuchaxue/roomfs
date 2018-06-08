@@ -71,8 +71,17 @@ void op_item_clear_input_buffer(int paramc, void **paramv) {
 void op_global_state_set(int paramc, void **paramv) {
     assert(paramc == 2);
     struct global_state *target_gs = (struct global_state *)paramv[0];
-    void *value_p = paramv[1];
-    set_global_state(target_gs, value_p);
+    struct eval *e = paramv[1];
+    float value = gen_result(e);
+    int v_int;
+    switch (target_gs->type) {
+        case GS_FLOAT:
+            set_global_state(target_gs, (void *)&value);
+            break;
+        case GS_INT:
+            v_int = (int)value;
+            set_global_state(target_gs, (void *)&v_int);
+    }
 }
 
 void op_nop(int paramc, void **paramv) {
@@ -195,9 +204,7 @@ struct event *construct_event(struct reaction *owner, const char *target1, const
             if (gs && (*op == '=')) {
                 cur_event->sub_type.sub_type_on_global_state = E_SET_STATE;
                 cur_event->op = op_global_state_set;
-                int *value = malloc(sizeof(int));
-                sscanf(target2, "%d", value);
-                make_params(cur_event, (void *)gs, (void *)value);
+                make_params(cur_event, (void *)gs, (void *)target2);
             }
             // TODO: global state perhaps
         }

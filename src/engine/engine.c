@@ -185,6 +185,28 @@ struct reaction *read_prerequisite_setting(FILE *f, struct item *cur_item) {
 }
 
 
+struct eval *read_eval(FILE *f) {
+
+    char *buf = malloc(MAX_DESCRIPTION_LEN * sizeof(char));
+    char c;
+    int i = 0;
+    while (1) {
+        c = fgetc(f);
+        if (c == '\n') {
+            if (i > 0 && buf[i-1] == '\\') {
+                i--;
+            } else {
+                buf[i] = '\0';
+                break;
+            }
+        }
+        buf[i] = c;
+        i++;
+    }
+
+    printf("construct eval: %s\n", buf);
+    return construct_eval(buf);
+}
 
 void read_reaction_setting(FILE *f, struct item *cur_item) {
     struct reaction *cur_reaction = read_prerequisite_setting(f, cur_item);
@@ -205,10 +227,13 @@ void read_reaction_setting(FILE *f, struct item *cur_item) {
         char *target2 = malloc(sizeof(char) * MAX_OBJ_NAME_LEN);
         fscanf(f, " %s\n", target2);
 
-
         if (strcmp(target2, "description") == 0) {
             target2 = read_multiline_description(f);
         } 
+
+        if (strcmp(target2, "eval") == 0) {
+            target2 = read_eval(f);
+        }
 
         printf("read event: %s %c %s\n", target1, op_char, target2);
         cur_event = construct_event(cur_reaction, target1, &op_char, target2);

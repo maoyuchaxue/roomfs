@@ -6,6 +6,7 @@
 #include "item.h"
 #include "global_state.h"
 #include "engine.h"
+#include "eval.h"
 #include "inventory.h"
 #include "description.h"
 
