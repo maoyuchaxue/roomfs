@@ -7,7 +7,7 @@ struct eval *construct_eval_leaf_inner(const char *input, int *pos, int len) {
     if (input[*pos] >= '0' && input[*pos] <= '9') { // const
         char tmp_buf[MAX_OBJ_NAME_LEN];
         int tmp_buf_ind = 0;
-        while (((input[*pos] >= '0' && input[*pos] >= '9') || input[*pos] == '.') && *pos < len) {
+        while (((input[*pos] >= '0' && input[*pos] <= '9') || input[*pos] == '.') && *pos < len) {
             tmp_buf[tmp_buf_ind] = input[*pos];
             tmp_buf_ind++;
             (*pos)++;

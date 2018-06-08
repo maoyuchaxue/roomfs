@@ -39,7 +39,7 @@ struct options {
 };
 
 static struct options options = {
-    .path = "./res/test_multi_prerequisites.conf"
+    .path = "./res/battle.conf"
 };
 
 #define OPTION(t, p)                           \
