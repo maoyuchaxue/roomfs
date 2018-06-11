@@ -39,7 +39,7 @@ struct options {
 };
 
 static struct options options = {
-    .path = "./res/battle.conf"
+    .path = NULL
 };
 
 #define OPTION(t, p)                           \
@@ -47,6 +47,7 @@ static struct options options = {
     
 static const struct fuse_opt option_spec[] = {
     OPTION("--path=%s", path),
+	OPTION("-p %s", path),
     FUSE_OPT_END
 };
 
@@ -225,6 +226,7 @@ int main(int argc, char *argv[])
 	struct fuse_session *se;
 	struct fuse_cmdline_opts opts;
 	int ret = -1;
+	printf("args inited\n");
 
 
     if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
@@ -273,6 +275,7 @@ int main(int argc, char *argv[])
 		ret = fuse_session_loop_mt(se, opts.clone_fd);
 
 	fuse_session_unmount(se);
+    engine_destroy();
 err_out3:
 	fuse_remove_signal_handlers(se);
 err_out2:
@@ -281,6 +284,5 @@ err_out1:
 	free(opts.mountpoint);
 	fuse_opt_free_args(&args);
 
-    engine_destroy();
 	return ret ? 1 : 0;
 }
