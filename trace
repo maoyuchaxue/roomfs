@@ -1,0 +1,42 @@
+./roomfs -o --path=./res/battle.conf mountdir > null
+cd mountdir
+./look status
+./look GreenSlime
+cd inventory
+ls
+./check RedPotion
+./RedPotion > ../status
+./check RedPotion
+./check MageAttack
+cd ../
+./look status
+./inventory/MageAttack > ./GreenSlime
+./look GreenSlime
+ls
+cd Level2
+
+
+./roomfs -o --path=./res/demo.conf mountdir > null
+ls
+./look
+cd 书房
+./look 
+cd 藏书室
+./look
+cd ../../庭院
+./look
+./look 长椅
+./look 长椅
+cd ../书房/藏书室-里
+./look 字母密码锁
+echo "ALPHABET" > 字母密码锁
+./look 字母密码锁
+./look 字母密码锁
+ls inventory
+cd ../../
+./look 卧室门
+./inventory/淡蓝色钥匙 > 卧室门
+./look 卧室门
+ls
+cd 卧室
+./look
